@@ -131,12 +131,27 @@ async def get_price(symbol):
 
 **Correct (load once at startup, hand off to consumers):**
 ```python
+# Producer (one cache-warmer process / scheduled job):
 markets = await ex.load_markets()
 redis.set('ccxt:markets:binance', json.dumps(markets), ex=3600)
-# downstream services read from Redis and skip their own load_markets
+redis.set('ccxt:currencies:binance', json.dumps(ex.currencies), ex=3600)
+
+# Consumer (every other process):
+consumer = ccxt.binance(...)
+consumer.set_markets(markets, currencies)   # official hydration API
+# consumer.markets, .markets_by_id, .symbols, .ids, .currencies are now all populated
 ```
 
-See [`examples/markets_caching.py`](examples/markets_caching.py).
+**Use `set_markets(markets, currencies)`, not `exchange.markets = markets`.** ccxt
+considers an instance "loaded" only when several mirror dicts (`markets_by_id`,
+`symbols`, `ids`, `currencies_by_id`) are all in sync. Setting `markets` alone
+leaves these stale, and the first call that touches a market id (order
+placement, symbol normalization) will trigger an implicit `load_markets()`
+anyway — defeating the cache.
+
+See [`examples/markets_caching.py`](examples/markets_caching.py) for a complete
+producer + consumer pair, including a `hydrate_markets_from_cache(exchange,
+markets, currencies)` helper.
 
 ---
 
