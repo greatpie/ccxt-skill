@@ -2,7 +2,7 @@
 
 A Claude Code / Claude Agent SDK [skill](https://docs.claude.com/en/docs/claude-code/skills) that teaches Claude how to use the [CCXT](https://github.com/ccxt/ccxt) library correctly when integrating with crypto exchanges.
 
-It captures lessons learned from real production code (a multi-tenant trading service running freqtrade-ms + Aster DEX), focused on the things ccxt users keep getting wrong:
+It focuses on the things ccxt users keep getting wrong:
 
 - The `ccxt.pro` import path after the package merge
 - WebSocket (`watch_*`) over REST polling (`fetch_*`) for rate-limit safety
@@ -124,9 +124,9 @@ pip install ccxt aiohttp_socks redis
 python examples/websocket_orderbook.py
 ```
 
-For `async_with_proxy.py`, set `APP_PROXY_URL=socks5h://user:pass@host:port`.
+For `async_with_proxy.py`, set `CCXT_PROXY_URL=socks5h://user:pass@host:port`.
 For `binance_demo_trading.py`, set `BINANCE_DEMO_API_KEY` and `BINANCE_DEMO_SECRET` (obtain from your Binance demo trading account).
-For `markets_caching.py`, point `APP_REDIS_URL` at a running Redis instance.
+For `markets_caching.py`, point `REDIS_URL` at a running Redis instance.
 
 ## Contributing
 

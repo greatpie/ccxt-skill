@@ -1,11 +1,11 @@
 ---
 name: ccxt
-description: Best-practices guide for using the CCXT library to interact with crypto exchanges (market data subscription, order placement, account queries, etc.). Use this skill proactively whenever the user mentions ccxt, ccxt.pro, exchange integration (Binance/OKX/Bybit/Aster), WebSocket market feeds, order endpoints, demo trading, testnet, load_markets, or exchange proxy issues. Captures field-tested lessons from this project's freqtrade-ms and aster_signing modules, covering: the post-merge ccxt.pro import pattern, WebSocket-first strategy, Binance demo trading replacing testnet, async + socks5 proxy setup, and load_markets caching.
+description: Best-practices guide for using the CCXT library to interact with crypto exchanges (market data subscription, order placement, account queries, etc.). Use this skill proactively whenever the user mentions ccxt, ccxt.pro, exchange integration (Binance/OKX/Bybit/Aster), WebSocket market feeds, order endpoints, demo trading, testnet, load_markets, or exchange proxy issues. Covers the post-merge ccxt.pro import pattern, WebSocket-first strategy, Binance demo trading replacing testnet, async + socks5 proxy setup, and load_markets caching.
 ---
 
-# CCXT Usage Guide (battle-tested in this project)
+# CCXT Usage Guide
 
-CCXT is a unified Python/JS wrapper around many crypto exchange APIs. This skill consolidates the lessons learned in this project's freqtrade-ms (crypto execution engine) and aster_signing (EIP-712) modules. Read it before writing new exchange integration code so you don't re-discover the same pitfalls.
+CCXT is a unified Python/JS wrapper around many crypto exchange APIs. This skill captures the things people most commonly get wrong when integrating it — read it before writing new exchange integration code so you don't re-discover the same pitfalls.
 
 ---
 
@@ -50,7 +50,7 @@ WebSocket data is push-based — no manual rate limiting needed, and **does not 
 
 ## 3. Prefer async CCXT
 
-Synchronous CCXT blocks the event loop and integrates poorly with FastAPI / asyncio. **Any IO-bound exchange code in this project should use `ccxt.async_support` or `ccxt.pro`** (the latter is async by definition).
+Synchronous CCXT blocks the event loop and integrates poorly with FastAPI / asyncio. **For any IO-bound exchange code, use `ccxt.async_support` or `ccxt.pro`** (the latter is async by definition).
 
 ```python
 import ccxt.async_support as ccxt   # async REST
@@ -70,7 +70,7 @@ Sync ccxt accepts a `proxies` dict for plain HTTP proxies, but **async CCXT does
 **Use socks5**, because:
 - It handles both HTTP and WebSocket (HTTP proxies don't tunnel `wss`)
 - `aiohttp_socks` provides a battle-tested connector
-- This project standardizes on socks5 for `APP_PROXY_URL` / `APP_STATIC_PROXY_URL` (e.g. `socks5h://user:pass@host:port`)
+- A single `socks5h://user:pass@host:port` URL covers REST and streaming traffic uniformly
 
 ```python
 from aiohttp_socks import ProxyConnector
@@ -103,10 +103,10 @@ exchange = ccxt.binance({
 exchange.enable_demo_trading(True)   # the key switch
 ```
 
-**Project-specific conventions** (see `.claude/rules/trading-internals.md`):
-- The `network="testnet"` code path is deprecated — **do not pass demo URL overrides**
-- For pure strategy validation, use freqtrade's dry-run (simulated wallet); no API keys required
-- Use demo trading only when you specifically need to exercise the order placement path
+**Practical guidance:**
+- Don't manually override the API base URL to point at `testnet.binance.vision` — that path is deprecated and leads to inconsistent behavior between spot and futures
+- For pure strategy validation, prefer simulated/dry-run modes that need no API keys at all (e.g. freqtrade's dry-run mode)
+- Use demo trading only when you specifically need to exercise the order placement path end-to-end
 
 See [`examples/binance_demo_trading.py`](examples/binance_demo_trading.py).
 
@@ -118,8 +118,8 @@ See [`examples/binance_demo_trading.py`](examples/binance_demo_trading.py).
 
 **Caching strategy:**
 - In-process: an exchange instance caches `markets` automatically — but **multi-process / multi-instance deployments will reload it every time**
-- Cross-process: write to Redis under a key like `ccxt:markets:binance:future`, TTL of a few hours to a day
-- Inject into freqtrade-ms: this project's `TradingService._inject_market_cache()` injects the Redis cache into the freqtrade config so freqtrade can skip its own `load_markets` call
+- Cross-process: write to Redis (or another shared cache) under a key like `ccxt:markets:binance:future`, TTL of a few hours to a day
+- Pass the cached payload to downstream consumers (other services, subprocesses, freqtrade configs) so they can hydrate without their own `load_markets` call
 
 **Anti-pattern (reloads on every request — guaranteed rate-limit hit):**
 ```python
@@ -165,12 +165,3 @@ markets, currencies)` helper.
 | Proxy | `socks5h://` + `aiohttp_socks.ProxyConnector` injected as `session` |
 | Binance test mode | dry-run for strategies; `enable_demo_trading(True)` for order-path testing |
 | Markets metadata | Load once at startup → cache in Redis → inject into downstream consumers |
-
----
-
-## Related project modules
-
-- `app/services/trading_service.py` — `_inject_market_cache()` injects the Redis market cache into freqtrade-ms config
-- `app/engine/freqtrade_ms_client.py` — HTTP client for freqtrade-ms; all ccxt calls ultimately happen inside the freqtrade-ms container
-- `app/engine/aster_signing.py` — Aster DEX EIP-712 signing (not ccxt, but the same class of "exchange integration" concerns)
-- `.claude/rules/trading-internals.md` — `StaticPairList allow_inactive`, `fiat_display_currency`, `stoploss_on_exchange`, and other freqtrade config gotchas

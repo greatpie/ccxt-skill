@@ -9,8 +9,9 @@ Why:
   seconds, plus a sizeable rate-limit weight cost.
 - An exchange instance caches markets in-process automatically, but multi-
   process / multi-instance deployments will reload on every boot.
-- Caching the result in Redis lets every consumer (API server, workers,
-  freqtrade-ms) hydrate from one source instead of hitting the exchange.
+- Caching the result in Redis lets every consumer (API server, worker
+  processes, downstream services) hydrate from one source instead of hitting
+  the exchange.
 
 Pattern:
     1. A single loader populates Redis on a schedule (or at startup).
@@ -90,7 +91,7 @@ def hydrate_markets_from_cache(
 
 
 async def main() -> None:
-    redis = aioredis.from_url(os.environ.get("APP_REDIS_URL", "redis://localhost:6379"))
+    redis = aioredis.from_url(os.environ.get("REDIS_URL", "redis://localhost:6379"))
     try:
         cached = await read_cached_markets(redis)
         if cached is None:

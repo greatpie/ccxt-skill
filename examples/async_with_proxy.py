@@ -1,6 +1,6 @@
 """
-Async CCXT + socks5 proxy — the project's standard way to reach Binance/OKX
-through a proxy.
+Async CCXT + socks5 proxy — the standard way to route Binance/OKX/etc.
+through a proxy when running async code.
 
 Dependencies:
     pip install ccxt aiohttp_socks
@@ -25,7 +25,7 @@ from aiohttp_socks import ProxyConnector
 
 
 async def main() -> None:
-    proxy_url = os.environ.get("APP_PROXY_URL", "socks5h://user:pass@proxy-host:1080")
+    proxy_url = os.environ.get("CCXT_PROXY_URL", "socks5h://user:pass@proxy-host:1080")
 
     connector = ProxyConnector.from_url(proxy_url)
     session = aiohttp.ClientSession(connector=connector)
