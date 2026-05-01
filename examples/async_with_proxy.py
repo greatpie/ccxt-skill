@@ -1,9 +1,17 @@
+# /// script
+# requires-python = ">=3.10"
+# dependencies = [
+#     "ccxt",
+#     "aiohttp_socks",
+#     "pydantic-settings",
+# ]
+# ///
 """
 Async CCXT + socks5 proxy — the standard way to route Binance/OKX/etc.
 through a proxy when running async code.
 
-Dependencies:
-    pip install ccxt aiohttp_socks
+Run with:
+    CCXT_PROXY_URL=socks5h://user:pass@host:1080 uv run examples/async_with_proxy.py
 
 Key points:
 - Async ccxt runs on aiohttp; the plain `proxies` dict does NOT work.
@@ -17,17 +25,23 @@ Key points:
 from __future__ import annotations
 
 import asyncio
-import os
 
 import aiohttp
 import ccxt.pro as ccxtpro
 from aiohttp_socks import ProxyConnector
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class ProxySettings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+    ccxt_proxy_url: str = "socks5h://user:pass@proxy-host:1080"
 
 
 async def main() -> None:
-    proxy_url = os.environ.get("CCXT_PROXY_URL", "socks5h://user:pass@proxy-host:1080")
+    settings = ProxySettings()
 
-    connector = ProxyConnector.from_url(proxy_url)
+    connector = ProxyConnector.from_url(settings.ccxt_proxy_url)
     session = aiohttp.ClientSession(connector=connector)
 
     exchange = ccxtpro.binance({

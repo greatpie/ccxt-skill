@@ -119,14 +119,30 @@ ccxt/
 
 ## Running the examples locally
 
+Each example is a [PEP 723](https://peps.python.org/pep-0723/) self-contained script with inline dependency metadata, so [`uv`](https://docs.astral.sh/uv/) can run them in an ephemeral venv with no setup:
+
 ```bash
-pip install ccxt aiohttp_socks redis
-python examples/websocket_orderbook.py
+uv run examples/websocket_orderbook.py
+uv run examples/async_with_proxy.py
+uv run examples/binance_demo_trading.py
+uv run examples/markets_caching.py
 ```
 
-For `async_with_proxy.py`, set `CCXT_PROXY_URL=socks5h://user:pass@host:port`.
-For `binance_demo_trading.py`, set `BINANCE_DEMO_API_KEY` and `BINANCE_DEMO_SECRET` (obtain from your Binance demo trading account).
-For `markets_caching.py`, point `REDIS_URL` at a running Redis instance.
+Configuration is loaded from environment variables (or a `.env` file in the working directory) via `pydantic-settings`:
+
+| Example | Required env vars |
+|---|---|
+| `websocket_orderbook.py` | none |
+| `async_with_proxy.py` | `CCXT_PROXY_URL=socks5h://user:pass@host:port` |
+| `binance_demo_trading.py` | `BINANCE_DEMO_API_KEY`, `BINANCE_DEMO_SECRET` (from your Binance demo trading account) |
+| `markets_caching.py` | `REDIS_URL=redis://localhost:6379` |
+
+If you'd rather manage deps yourself with `uv add` in an existing project:
+
+```bash
+uv add ccxt aiohttp_socks redis pydantic-settings
+uv run python examples/websocket_orderbook.py
+```
 
 ## Contributing
 

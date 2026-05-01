@@ -14,7 +14,7 @@ CCXT is a unified Python/JS wrapper around many crypto exchange APIs. This skill
 `ccxt.pro` is no longer a separate PyPI package — it has been merged into `ccxt`. WebSocket methods (everything starting with `watch_`) still need to be accessed through the `ccxt.pro` namespace, however.
 
 ```bash
-pip install ccxt   # do NOT install ccxt.pro — it's already bundled
+uv add ccxt   # do NOT add ccxt.pro — it's already bundled
 ```
 
 ```python

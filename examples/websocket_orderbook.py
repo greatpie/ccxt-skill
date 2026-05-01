@@ -1,5 +1,14 @@
+# /// script
+# requires-python = ">=3.10"
+# dependencies = [
+#     "ccxt",
+# ]
+# ///
 """
 Minimal CCXT Pro WebSocket order-book example.
+
+Run with:
+    uv run examples/websocket_orderbook.py
 
 Key points:
 - Use the ccxt.pro namespace even after the package merge.

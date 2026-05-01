@@ -1,7 +1,18 @@
+# /// script
+# requires-python = ">=3.10"
+# dependencies = [
+#     "ccxt",
+#     "redis",
+#     "pydantic-settings",
+# ]
+# ///
 """
 Caching CCXT load_markets() output in Redis, plus the consumer-side helper
 to hydrate a fresh exchange instance from that cache without hitting the
 network.
+
+Run with:
+    REDIS_URL=redis://localhost:6379 uv run examples/markets_caching.py
 
 Why:
 - load_markets() returns metadata for every symbol on the exchange. For
@@ -34,14 +45,20 @@ from __future__ import annotations
 
 import asyncio
 import json
-import os
 
 import ccxt.async_support as ccxt
 import redis.asyncio as aioredis
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 CACHE_KEY_MARKETS = "ccxt:markets:binance"
 CACHE_KEY_CURRENCIES = "ccxt:currencies:binance"
 CACHE_TTL_SECONDS = 60 * 60  # 1 hour
+
+
+class CacheSettings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+    redis_url: str = "redis://localhost:6379"
 
 
 async def load_and_cache_markets(redis: aioredis.Redis) -> tuple[dict, dict]:
@@ -91,7 +108,8 @@ def hydrate_markets_from_cache(
 
 
 async def main() -> None:
-    redis = aioredis.from_url(os.environ.get("REDIS_URL", "redis://localhost:6379"))
+    settings = CacheSettings()
+    redis = aioredis.from_url(settings.redis_url)
     try:
         cached = await read_cached_markets(redis)
         if cached is None:
