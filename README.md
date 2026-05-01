@@ -30,29 +30,55 @@ Example queries that should activate it:
 
 ## Installation
 
-This is a plain skill directory — drop it anywhere Claude scans for skills.
+### Recommended — via [`vercel-labs/skills`](https://github.com/vercel-labs/skills) CLI
 
-### Claude Code
+The fastest way. Works with Claude Code, Codex, Cursor, OpenCode, and ~15 other agent runtimes.
 
-**User-level (available in every project):**
-
-```bash
-mkdir -p ~/.claude/skills
-git clone https://github.com/<your-fork>/ccxt-skill ~/.claude/skills/ccxt
-```
-
-**Project-level (committed alongside the project):**
+**Project-scoped (added under `.claude/skills/` in the current repo):**
 
 ```bash
-mkdir -p .claude/skills
-git clone https://github.com/<your-fork>/ccxt-skill .claude/skills/ccxt
+npx skills add <owner>/claude-skill-ccxt
 ```
 
-Either layout works — Claude Code reads `SKILL.md` from any subdirectory under those roots.
+**User-scoped (available in every project on this machine):**
 
-### Claude Agent SDK
+```bash
+npx skills add -g <owner>/claude-skill-ccxt
+```
 
-Pass the skill directory to the agent at startup:
+**Target Claude Code only** (skip other agent layouts):
+
+```bash
+npx skills add <owner>/claude-skill-ccxt -a claude-code
+```
+
+**Verify and manage:**
+
+```bash
+npx skills list           # list installed skills
+npx skills update         # pull updates from this repo
+npx skills remove ccxt    # uninstall
+```
+
+> Replace `<owner>` with the GitHub user/org once this repo is published. The CLI auto-discovers `SKILL.md` at the repo root, so no extra path argument is needed.
+
+### Manual install (no CLI)
+
+If you'd rather not use the CLI, just drop the directory where Claude looks for skills.
+
+**Claude Code, user-level (every project):**
+
+```bash
+git clone https://github.com/<owner>/claude-skill-ccxt ~/.claude/skills/ccxt
+```
+
+**Claude Code, project-level (committed alongside your project):**
+
+```bash
+git clone https://github.com/<owner>/claude-skill-ccxt .claude/skills/ccxt
+```
+
+**Claude Agent SDK:**
 
 ```python
 from claude_agent_sdk import Agent
@@ -60,7 +86,7 @@ from claude_agent_sdk import Agent
 agent = Agent(skills=["./skills/ccxt"])
 ```
 
-Or set the `CLAUDE_SKILLS_DIR` environment variable to a parent directory containing `ccxt/`.
+Or set `CLAUDE_SKILLS_DIR` to a parent directory containing `ccxt/`.
 
 ### Verify it loaded
 
