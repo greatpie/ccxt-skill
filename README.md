@@ -37,19 +37,19 @@ The fastest way. Works with Claude Code, Codex, Cursor, OpenCode, and ~15 other 
 **Project-scoped (added under `.claude/skills/` in the current repo):**
 
 ```bash
-npx skills add <owner>/claude-skill-ccxt
+npx skills add greatpie/ccxt-skill
 ```
 
 **User-scoped (available in every project on this machine):**
 
 ```bash
-npx skills add -g <owner>/claude-skill-ccxt
+npx skills add -g greatpie/ccxt-skill
 ```
 
 **Target Claude Code only** (skip other agent layouts):
 
 ```bash
-npx skills add <owner>/claude-skill-ccxt -a claude-code
+npx skills add greatpie/ccxt-skill -a claude-code
 ```
 
 **Verify and manage:**
@@ -60,7 +60,7 @@ npx skills update         # pull updates from this repo
 npx skills remove ccxt    # uninstall
 ```
 
-> Replace `<owner>` with the GitHub user/org once this repo is published. The CLI auto-discovers `SKILL.md` at the repo root, so no extra path argument is needed.
+> The CLI auto-discovers `SKILL.md` at the repo root, so no extra path argument is needed.
 
 ### Manual install (no CLI)
 
@@ -69,13 +69,13 @@ If you'd rather not use the CLI, just drop the directory where Claude looks for 
 **Claude Code, user-level (every project):**
 
 ```bash
-git clone https://github.com/<owner>/claude-skill-ccxt ~/.claude/skills/ccxt
+git clone https://github.com/greatpie/ccxt-skill ~/.claude/skills/ccxt
 ```
 
 **Claude Code, project-level (committed alongside your project):**
 
 ```bash
-git clone https://github.com/<owner>/claude-skill-ccxt .claude/skills/ccxt
+git clone https://github.com/greatpie/ccxt-skill .claude/skills/ccxt
 ```
 
 **Claude Agent SDK:**
